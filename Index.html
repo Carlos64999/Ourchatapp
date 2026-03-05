@@ -92,13 +92,11 @@
 
 <h1>Our Little Chat 💖</h1>
 
-<!-- Name Input Form -->
 <div id="name-form">
   <input type="text" id="name-input" placeholder="Enter your name" />
   <button id="start-btn">Start Chat</button>
 </div>
 
-<!-- Chat Container -->
 <div id="chat-container" style="display: none;">
   <div id="chat-box"></div>
   <div id="input-area">
@@ -107,27 +105,29 @@
   </div>
 </div>
 
-<!-- Firebase v9+ -->
 <script type="module">
+  // Firebase v9+ imports
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics.js";
   import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
+  // NEW Firebase configuration
   const firebaseConfig = {
-    apiKey: "AIzaSyACOZFmMxO3ibfl-3hll-xjnfPp1MVwTMM",
-    authDomain: "my-first-web-app-5fba2.firebaseapp.com",
-    databaseURL: "https://my-first-web-app-5fba2-default-rtdb.firebaseio.com",
-    projectId: "my-first-web-app-5fba2",
-    storageBucket: "my-first-web-app-5fba2.firebasestorage.app",
-    messagingSenderId: "355665738013",
-    appId: "1:355665738013:web:fb01f36a100d5fe8fa09f4",
-    measurementId: "G-104L0DP86E"
+    apiKey: "AIzaSyAm_ZmME2Pl8lHNVK7XeCpbdAmcbQMv5Qc",
+    authDomain: "ourchatapp-11a6d.firebaseapp.com",
+    projectId: "ourchatapp-11a6d",
+    storageBucket: "ourchatapp-11a6d.firebasestorage.app",
+    messagingSenderId: "718713422522",
+    appId: "1:718713422522:web:41ca3ad21a5c8f2d087883",
+    measurementId: "G-LR35TJM2LF"
   };
 
+  // Initialize Firebase
   const app = initializeApp(firebaseConfig);
   const analytics = getAnalytics(app);
   const db = getDatabase(app);
 
+  // DOM elements
   const startBtn = document.getElementById('start-btn');
   const nameInput = document.getElementById('name-input');
   const nameForm = document.getElementById('name-form');
@@ -143,6 +143,7 @@
     localStorage.setItem('deviceId', deviceId);
   }
 
+  // Persistent username
   let username = localStorage.getItem('username') || '';
 
   function startChat() {
@@ -178,16 +179,13 @@
     messageInput.value = '';
   });
 
-  const chatRef = ref(db, 'chat');
-  onChildAdded(chatRef, (snapshot) => {
+  // Listen for new messages
+  onChildAdded(ref(db, 'chat'), (snapshot) => {
     const message = snapshot.val();
     const msgDiv = document.createElement('div');
     msgDiv.classList.add('message');
-
-    // Alignment based on deviceId
     msgDiv.classList.add(message.senderId === deviceId ? 'me' : 'her');
     msgDiv.textContent = message.text;
-
     chatBox.appendChild(msgDiv);
     chatBox.scrollTop = chatBox.scrollHeight;
   });
