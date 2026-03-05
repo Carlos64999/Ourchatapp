@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Our Little Chat 💖</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #fff0f5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 2em;
+      color: #ff69b4;
+      text-align: center;
+      margin-bottom: 20px;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+    }
+    #name-form, #chat-container {
+      width: 100%;
+      max-width: 500px;
+      margin-top: 20px;
+    }
+    #chat-box {
+      width: 100%;
+      height: 400px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 10px;
+      overflow-y: scroll;
+      background-color: #fff;
+      display: flex;
+      flex-direction: column;
+    }
+    .message {
+      padding: 8px 12px;
+      margin: 5px 0;
+      border-radius: 15px;
+      max-width: 70%;
+      word-wrap: break-word;
+    }
+    .me {
+      background-color: #dcf8c6;
+      align-self: flex-end;
+    }
+    .her {
+      background-color: #ffb6c1;
+      align-self: flex-start;
+    }
+    #message-input {
+      width: 80%;
+      padding: 10px;
+      border-radius: 20px;
+      border: 1px solid #ccc;
+      margin-right: 5px;
+    }
+    #send-btn {
+      padding: 10px 20px;
+      border: none;
+      background-color: #4CAF50;
+      color: white;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+    #input-area {
+      display: flex;
+      width: 100%;
+      margin-top: 10px;
+    }
+    #name-input {
+      width: 70%;
+      padding: 10px;
+      border-radius: 20px;
+      border: 1px solid #ccc;
+    }
+    #start-btn {
+      padding: 10px 20px;
+      border: none;
+      background-color: #ff69b4;
+      color: white;
+      border-radius: 20px;
+      cursor: pointer;
+      margin-left: 5px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Our Little Chat 💖</h1>
+
+<!-- Name Input Form -->
+<div id="name-form">
+  <input type="text" id="name-input" placeholder="Enter your name" />
+  <button id="start-btn">Start Chat</button>
+</div>
+
+<!-- Chat Container -->
+<div id="chat-container" style="display: none;">
+  <div id="chat-box"></div>
+  <div id="input-area">
+    <input type="text" id="message-input" placeholder="Type a message..." />
+    <button id="send-btn">Send</button>
+  </div>
+</div>
+
+<!-- Firebase v9+ -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics.js";
+  import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyACOZFmMxO3ibfl-3hll-xjnfPp1MVwTMM",
+    authDomain: "my-first-web-app-5fba2.firebaseapp.com",
+    databaseURL: "https://my-first-web-app-5fba2-default-rtdb.firebaseio.com",
+    projectId: "my-first-web-app-5fba2",
+    storageBucket: "my-first-web-app-5fba2.firebasestorage.app",
+    messagingSenderId: "355665738013",
+    appId: "1:355665738013:web:fb01f36a100d5fe8fa09f4",
+    measurementId: "G-104L0DP86E"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  const db = getDatabase(app);
+
+  const startBtn = document.getElementById('start-btn');
+  const nameInput = document.getElementById('name-input');
+  const nameForm = document.getElementById('name-form');
+  const chatContainer = document.getElementById('chat-container');
+  const chatBox = document.getElementById('chat-box');
+  const messageInput = document.getElementById('message-input');
+  const sendBtn = document.getElementById('send-btn');
+
+  // Generate unique device ID for left/right alignment
+  let deviceId = localStorage.getItem('deviceId');
+  if (!deviceId) {
+    deviceId = 'device-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+    localStorage.setItem('deviceId', deviceId);
+  }
+
+  let username = localStorage.getItem('username') || '';
+
+  function startChat() {
+    nameForm.style.display = 'none';
+    chatContainer.style.display = 'block';
+    if (!username) {
+      username = nameInput.value.trim();
+      localStorage.setItem('username', username);
+    }
+  }
+
+  if (username) startChat();
+
+  startBtn.addEventListener('click', () => {
+    if (nameInput.value.trim()) {
+      username = nameInput.value.trim();
+      localStorage.setItem('username', username);
+      startChat();
+    }
+  });
+
+  sendBtn.addEventListener('click', () => {
+    const text = messageInput.value.trim();
+    if (!text) return;
+
+    push(ref(db, 'chat'), {
+      senderId: deviceId,
+      user: username,
+      text: text,
+      timestamp: Date.now()
+    });
+
+    messageInput.value = '';
+  });
+
+  const chatRef = ref(db, 'chat');
+  onChildAdded(chatRef, (snapshot) => {
+    const message = snapshot.val();
+    const msgDiv = document.createElement('div');
+    msgDiv.classList.add('message');
+
+    // Alignment based on deviceId
+    msgDiv.classList.add(message.senderId === deviceId ? 'me' : 'her');
+    msgDiv.textContent = message.text;
+
+    chatBox.appendChild(msgDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  });
+</script>
+
+</body>
+</html>
